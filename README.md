@@ -195,3 +195,67 @@ sc.pl.spatial(adata, img_key="hires", color=["clusters","hypoxia_score"], groups
 <img src="https://github.com/user-attachments/assets/d45dd221-35be-4c2d-9409-7bba7b7f6284" alt="1" height = "300" width="600"/>
 
 As you can see, we were able to spatially identify regions of the tumor microenviornment associated with hypoxia.
+
+Next, we can annotate cells based on their cell-cycle status. To do this, we should not filter on the most expressed genes, since we will lose mose of our resolving power. Instead, we can make a copy of the anndata object before our pre-processing steps and perform the annotation. Then we write the results back to the original Anndata object:
+```python
+cell_cycle_genes = [x.strip() for x in open('regev_lab_cell_cycle_genes.txt')]
+s_genes = cell_cycle_genes[:43]
+g2m_genes = cell_cycle_genes[43:]
+cell_cycle_genes = [x for x in cell_cycle_genes if x in adata_cc.var_names]
+
+sc.pp.filter_cells(adata_cc, min_genes=200)
+sc.pp.filter_genes(adata_cc, min_cells=3)
+sc.pp.normalize_per_cell(adata_cc, counts_per_cell_after=1e4)
+
+sc.pp.log1p(adata_cc)
+sc.pp.scale(adata_cc)
+
+sc.tl.score_genes_cell_cycle(adata_cc, s_genes=s_genes, g2m_genes=g2m_genes)
+
+adata_cc_genes = adata_cc[:, cell_cycle_genes]
+sc.tl.pca(adata_cc_genes)
+sc.pl.pca_scatter(adata_cc_genes, color='phase')
+
+sc.pp.regress_out(adata_cc_genes, ['S_score', 'G2M_score'])
+sc.pp.scale(adata_cc_genes)
+
+adata.obs['phase'] = adata_cc_genes.obs['phase'].map({'S': 'Cycling', 'G2M': 'Cycling', 'G1': 'Non Cycling'})
+
+sc.pl.spatial(adata, img_key="hires", color=["clusters","phase"])
+```
+<img src="https://github.com/user-attachments/assets/16acb48f-8be7-4f8b-a925-9c9cb01871c6" alt="1" height = "300" width="600"/>
+
+Clusters 5 and 6 appear to contain a large proportion of the cycling cells. We can run through the same pipeline above for geneset enrichment. Based on these results, there are obvious pathways upregulated, such as E2F targets. We also find OxPhos as a primary hit:
+
+```python
+with open('HALLMARK_OXIDATIVE_PHOSPHORYLATION.v2024.1.Hs.json') as f:
+    data = json.load(f)
+
+geneset_oxphos = data["HALLMARK_OXIDATIVE_PHOSPHORYLATION"]["geneSymbols"]
+
+geneset_in_data = [gene for gene in geneset_oxphos if gene in adata.var_names]
+
+sc.tl.score_genes(adata, gene_list=geneset_in_data, score_name='oxphos_score')
+
+sc.pl.spatial(adata, img_key="hires", color=["hypoxia_score","oxphos_score"])
+```
+Now we have identified two functional hotspots within the sample:
+<img src="https://github.com/user-attachments/assets/90a85f78-9ecd-45d7-b4bc-bc1bbff1c73d" alt="1" height = "300" width="600"/>
+
+Cluster 0 did not seem to have an obvious GSEA pathway, but there are several genes that are highly upregulated:
+```python
+sc.pl.spatial(adata, img_key="hires", color=["clusters","FABP7","SCD5","TSPAN7"], groups=["0"])
+```
+![image](https://github.com/user-attachments/assets/00f1defd-5180-43c0-b566-c5ec8c8d47af)
+
+After skimming the literature, some of these appear to be related to a neural-stem-like phenotype. As a result, we can create a custom geneset based on a few of these known genes in GBM:
+```python
+geneset_stemlike = ['FABP7','CD133','Nestin','SOX2','CD44','ALDH1A3','Nanog','CD36','ELOVL2','nestin']
+
+geneset_in_data = [gene for gene in geneset_stemlike if gene in adata.var_names]
+
+sc.tl.score_genes(adata, gene_list=geneset_in_data, score_name='stemlike_score')
+
+sc.pl.spatial(adata, img_key="hires", color=["hypoxia_score","oxphos_score","stemlike_score"])
+```
+<img src="https://github.com/user-attachments/assets/99c633d1-2650-4be1-aa14-27426ecc4abe" alt="1" height = "300" width="900"/>
