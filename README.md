@@ -194,4 +194,4 @@ sc.pl.spatial(adata, img_key="hires", color=["clusters","hypoxia_score"], groups
 ```
 <img src="https://github.com/user-attachments/assets/d45dd221-35be-4c2d-9409-7bba7b7f6284" alt="1" height = "300" width="600"/>
 
-As you can see, we were able to spatially identify regions of the tumor microenviornment associated with hypoxia. We could do some more interesting analysis, but I will leave it to you!
+As you can see, we were able to spatially identify regions of the tumor microenviornment associated with hypoxia.
