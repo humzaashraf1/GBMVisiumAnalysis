@@ -259,6 +259,7 @@ sc.tl.score_genes(adata, gene_list=geneset_in_data, score_name='stemlike_score')
 sc.pl.spatial(adata, img_key="hires", color=["hypoxia_score","oxphos_score","stemlike_score"])
 ```
 <img src="https://github.com/user-attachments/assets/99c633d1-2650-4be1-aa14-27426ecc4abe" alt="1" height = "300" width="900"/>
+
 The last spatial cluster to explore involves clusters 2, 3, 9, and 13. Performing more geneset enrichment and inspecting upregulated genes, we can see that interferon signaling and CD74 are highly upregulated. A quick literature search suggested this may be related to macrophage invasion. As a result, we can label genes expected to be upregulated in macrophages and those related to macrophage invasion:
 
 ```python
