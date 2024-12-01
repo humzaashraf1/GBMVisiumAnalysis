@@ -1,4 +1,4 @@
-# Spatial Transcriptomics Analysis with Visium
+![image](https://github.com/user-attachments/assets/1f44ded8-0de3-42bc-9d3b-1c92f2ecf618)# Spatial Transcriptomics Analysis with Visium
 
 Single-cell spatial transcriptomics is an emerging field, particularly in the study of tumor microenvironments in cancer. Recent advancements in technology, such as the Visium platform from 10x Genomics, enable the extraction of regional transcriptomic data alongside H&E staining from patient biopsy samples. In this example, we will use Scanpy to analyze single-cell RNA-seq data from the Visium platform, focusing on Glioblastoma.
 
@@ -259,3 +259,21 @@ sc.tl.score_genes(adata, gene_list=geneset_in_data, score_name='stemlike_score')
 sc.pl.spatial(adata, img_key="hires", color=["hypoxia_score","oxphos_score","stemlike_score"])
 ```
 <img src="https://github.com/user-attachments/assets/99c633d1-2650-4be1-aa14-27426ecc4abe" alt="1" height = "300" width="900"/>
+The last spatial cluster to explore involves clusters 2, 3, 9, and 13. Performing more geneset enrichment and inspecting upregulated genes, we can see that interferon signaling and CD74 are highly upregulated. A quick literature search suggested this may be related to macrophage invasion. As a result, we can label genes expected to be upregulated in macrophages and those related to macrophage invasion:
+
+```python
+geneset_macro = ['CD74','CCR2', 'CD45RA', 'CD141', 'ICAM', 'CD1C', 'CD1B', 'TGFBI', 'FXYD5', 'FCGR2B', 'CLEC12A', 'CLEC10A', 'CD207', 'CD49D', 'CD209','APOE']
+
+geneset_macro_in_data = [gene for gene in geneset_macro if gene in adata.var_names]
+
+sc.tl.score_genes(adata, gene_list=geneset_macro_in_data, score_name='macro_score')
+
+sc.pl.spatial(adata, img_key="hires", color=["clusters", "macro_score"],groups=['2','3','9','13'], vmin=0, vmax=0.9)
+```
+<img src="https://github.com/user-attachments/assets/a324ce94-a33c-4d7a-96bf-0febe4281987" alt="1" height = "300" width="600"/>
+
+Finally we have (mostly) resolved the spatial clusters for biological function:
+```python
+sc.pl.spatial(adata, img_key="hires", color=["hypoxia_score","oxphos_score","stemlike_score","macro_score"])
+```
+![image](https://github.com/user-attachments/assets/37aac431-96c3-4372-9196-46d931ed7f98)
