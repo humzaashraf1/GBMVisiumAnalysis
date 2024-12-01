@@ -1,4 +1,4 @@
-![image](https://github.com/user-attachments/assets/1f44ded8-0de3-42bc-9d3b-1c92f2ecf618)# Spatial Transcriptomics Analysis with Visium
+# Spatial Transcriptomics Analysis with Visium
 
 Single-cell spatial transcriptomics is an emerging field, particularly in the study of tumor microenvironments in cancer. Recent advancements in technology, such as the Visium platform from 10x Genomics, enable the extraction of regional transcriptomic data alongside H&E staining from patient biopsy samples. In this example, we will use Scanpy to analyze single-cell RNA-seq data from the Visium platform, focusing on Glioblastoma.
 
